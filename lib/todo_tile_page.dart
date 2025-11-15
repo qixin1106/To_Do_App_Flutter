@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 class TodoTilePage extends StatelessWidget {
   final String taskName;
   final bool taskDone;
+  final DateTime createdAt;
   final Function(bool?)? onChanged;
   Function(BuildContext)? deleteButton;
 
@@ -11,6 +12,7 @@ class TodoTilePage extends StatelessWidget {
     super.key,
     required this.taskName,
     required this.taskDone,
+    required this.createdAt,
     required this.onChanged,
     required this.deleteButton,
   });
@@ -38,22 +40,38 @@ class TodoTilePage extends StatelessWidget {
             color: Colors.yellow,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              //checkbox
-              Checkbox(
-                value: taskDone,
-                onChanged: onChanged,
-                activeColor: Colors.black,
+              Row(
+                children: [
+                  // checkbox
+                  Checkbox(
+                    value: taskDone,
+                    onChanged: onChanged,
+                    activeColor: Colors.black,
+                  ),
+                  // task name
+                  Expanded(
+                    child: Text(
+                      taskName,
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w500,
+                        decoration: taskDone ? TextDecoration.lineThrough : TextDecoration.none,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-
-              //task name
+              SizedBox(height: 8.0),
+              // creation time
               Text(
-                taskName,
+                'Created: ${createdAt.month}/${createdAt.day}/${createdAt.year} ${createdAt.hour}:${createdAt.minute.toString().padLeft(2, '0')}',
                 style: TextStyle(
-                    decoration: taskDone
-                        ? TextDecoration.lineThrough
-                        : TextDecoration.none),
+                  fontSize: 12.0,
+                  color: Colors.black54,
+                ),
               ),
             ],
           ),
