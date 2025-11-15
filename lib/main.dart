@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:todo_app/controllers/todo_controller.dart';
 import 'package:todo_app/home_page.dart';
+import 'package:todo_app/create_todo_page.dart';
 
-void main() async{
-
-  //initialize hive db
+void main() async {
   await Hive.initFlutter();
-
-  //open a box
-  var box= await Hive.openBox('mybox');
-
+  await Hive.openBox('mybox');
   runApp(const MyApp());
 }
 
@@ -18,9 +16,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      initialRoute: '/',
+      getPages: [
+        GetPage(name: '/', page: () => HomePage()),
+        GetPage(name: '/create-todo', page: () => CreateTodoPage()),
+      ],
       theme: ThemeData(
         primarySwatch: Colors.yellow, // Works with Material 2
         colorScheme: ColorScheme.fromSeed(

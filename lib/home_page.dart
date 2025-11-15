@@ -1,77 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:todo_app/data/database.dart';
-import 'package:todo_app/dialog_box.dart';
+import 'package:get/get.dart';
+import 'package:todo_app/controllers/todo_controller.dart';
 import 'package:todo_app/todo_tile_page.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  //reference the hive box
-  final _myBox= Hive.box('mybox');
-  //create instance of our class
-  ToDoDatabase db= ToDoDatabase();
-
-  @override
-  void initState() {
-    //if 1st time user ever opened this app
-    if (_myBox.get("TODOLIST")==null) {
-      db.createInitialData();
-    } else {
-      //there exists some prev data
-      db.loadData();
-    } 
-
-    super.initState();
-  }
-
-  //text controller
-  final _controller = TextEditingController();
-
-  //checkbox was tapped
-  void checkBoxChanged(bool? value, int index) {
-    setState(() {
-      db.todoList[index][1] = !db.todoList[index][1];
-    });
-    db.updateDataBase();
-  }
-
-  //save new task
-  void saveNewTask(){
-    setState(() {
-      db.todoList.add([_controller.text, false]);
-      _controller.clear();
-    });
-    Navigator.of(context).pop();
-    db.updateDataBase();
-  }
-
-  //creating new task
-  void createNewTask() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return DialogBox(
-          controller: _controller,
-          onSave: saveNewTask,
-          onCancel: ()=>Navigator.of(context).pop(),
-        );
-      },
-    );
-  }
-
-  //deleting a task
-  void deleteTask(int index){
-    setState(() {
-      db.todoList.removeAt(index);
-    });
-    db.updateDataBase();
-  }
+class HomePage extends StatelessWidget {
+  HomePage({super.key});
+  final TodoController _controller = Get.put(TodoController());
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -80,22 +15,67 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Colors.yellow,
         title: Text('TO DO'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              _searchController.clear();
+              _controller.searchQuery.value = '';
+            },
+            icon: Icon(Icons.clear),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: createNewTask,
+        onPressed: () => Get.toNamed('/create-todo'),
         backgroundColor: Colors.yellow,
         child: Icon(Icons.add),
       ),
-      body: ListView.builder(
-        itemCount: db.todoList.length,
-        itemBuilder: (context, index) {
-          return TodoTilePage(
-            taskName: db.todoList[index][0],
-            taskDone: db.todoList[index][1],
-            onChanged: (value) => checkBoxChanged(value, index),
-            deleteButton: (context) => deleteTask(index) ,
-          );
-        },
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(15.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search tasks...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              onChanged: (value) => _controller.searchQuery.value = value,
+            ),
+          ),
+          Expanded(
+            child: Obx(() {
+              final filteredTodos = _controller.filteredTodos;
+              if (filteredTodos.isEmpty) {
+                return Center(
+                  child: Text(
+                    _controller.searchQuery.value.isEmpty ? 'No tasks yet' : 'No matching tasks',
+                    style: TextStyle(fontSize: 18.0),
+                  ),
+                );
+              }
+              return ListView.builder(
+                itemCount: filteredTodos.length,
+                itemBuilder: (context, index) {
+                  final todo = filteredTodos[index];
+                  final createdAt = DateTime.fromMillisecondsSinceEpoch(todo['createdAt']);
+                  return TodoTilePage(
+                    taskName: todo['name'],
+                    taskDone: todo['done'],
+                    createdAt: createdAt,
+                    onChanged: (value) => _controller.toggleTodo(index),
+                    deleteButton: (context) => _controller.deleteTodo(index),
+                  );
+                },
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
