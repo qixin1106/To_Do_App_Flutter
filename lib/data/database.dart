@@ -14,8 +14,8 @@ class ToDoDatabase {
 
     //default tasks
     todoList = [
-      ["Code App", false],
-      ["Do Exercise", false],
+      ["Code App", false, null],
+      ["Do Exercise", false, null],
     ];
   }
 
