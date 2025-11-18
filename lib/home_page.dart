@@ -42,9 +42,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   //save new task
-  void saveNewTask(){
+  void saveNewTask({String? location}){
     setState(() {
-      db.todoList.add([_controller.text, false]);
+      db.todoList.add([_controller.text, false, location]);
       _controller.clear();
     });
     Navigator.of(context).pop();
@@ -58,7 +58,7 @@ class _HomePageState extends State<HomePage> {
       builder: (context) {
         return DialogBox(
           controller: _controller,
-          onSave: saveNewTask,
+          onSave: (location) => saveNewTask(location: location),
           onCancel: ()=>Navigator.of(context).pop(),
         );
       },
